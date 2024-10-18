@@ -15,31 +15,74 @@ interface GroceryListProps {
   setGroceryItems: React.Dispatch<React.SetStateAction<GroceryItem[]>>;
 }
 
-const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems }) => {
+const RecommendedItemContainer: React.FC<{
+  recommendedItem: string;
+  addItem: (itemName: string) => void;
+}> = ({ recommendedItem, addItem }) => {
   const [newItemName, setNewItemName] = useState('');
-  const [recommendedItem, setRecommendedItem] = useState('');
 
-  useEffect(() => {
-    fetchRecommendedItem();
-  }, [groceryItems]);
+  const handleAddRecommendedItem = () => {
+    if (recommendedItem) {
+      addItem(recommendedItem);
+    }
+  };
 
-  const addItem = async () => {
+  const handleAddCustomItem = () => {
     if (newItemName.trim().length > 2) {
-      const newItem = {
-        name: newItemName.trim(),
-        completed: false,
-      };
-      const updatedItems = await addGroceryItem(newItem);
-      setGroceryItems(updatedItems);
+      addItem(newItemName.trim());
       setNewItemName('');
     }
   };
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
-      addItem();
+      handleAddCustomItem();
     }
   };
+
+  return (
+    <div className="bg-gray-100 p-4 rounded-lg mb-4">
+      <h3 className="text-lg font-semibold mb-2">Recommended Item</h3>
+      <div className="flex flex-col items-center mb-4">
+        <div className="w-32 h-32 bg-gray-300 rounded-full mb-2 flex items-center justify-center">
+          <span className="text-4xl">🛒</span>
+        </div>
+        <p className="text-center">{recommendedItem || 'Loading...'}</p>
+        <button
+          onClick={handleAddRecommendedItem}
+          disabled={!recommendedItem}
+          className="bg-green-500 text-white px-4 py-2 rounded mt-2 w-full disabled:opacity-50"
+        >
+          Add {recommendedItem || 'recommended item'}
+        </button>
+      </div>
+      <div className="flex mt-4">
+        <input
+          type="text"
+          value={newItemName}
+          onChange={(e) => setNewItemName(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Enter item name"
+          className="flex-grow mr-2 p-2 border rounded"
+        />
+        <button
+          onClick={handleAddCustomItem}
+          disabled={newItemName.trim().length < 2}
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
+        >
+          <Plus size={24} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems }) => {
+  const [recommendedItem, setRecommendedItem] = useState('');
+
+  useEffect(() => {
+    fetchRecommendedItem();
+  }, [groceryItems]);
 
   const fetchRecommendedItem = async () => {
     try {
@@ -61,15 +104,13 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
     }
   };
 
-  const addRecommendedItem = async () => {
-    if (recommendedItem) {
-      const newItem = {
-        name: recommendedItem,
-        completed: false,
-      };
-      const updatedItems = await addGroceryItem(newItem);
-      setGroceryItems(updatedItems);
-    }
+  const addItem = async (itemName: string) => {
+    const newItem = {
+      name: itemName,
+      completed: false,
+    };
+    const updatedItems = await addGroceryItem(newItem);
+    setGroceryItems(updatedItems);
   };
 
   const removeItem = async (id: string) => {
@@ -97,31 +138,11 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
       <div className="p-8">
         <h2 className="text-2xl font-bold mb-4">Grocery List</h2>
         <div className="flex space-x-2 mb-4">
-          <button
-            onClick={addRecommendedItem}
-            disabled={!recommendedItem}
-            className="bg-green-500 text-white p-2 rounded disabled:opacity-50 flex-1"
-          >
-            Add {recommendedItem || 'recommended item'}
-          </button>
-          <DishRecommendation groceryItems={groceryItems} setGroceryItems={setGroceryItems} />
-        </div>
-        <div className="flex mb-4">
-          <input
-            type="text"
-            value={newItemName}
-            onChange={(e) => setNewItemName(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Enter item name"
-            className="flex-grow mr-2 p-2 border rounded"
+          <RecommendedItemContainer
+            recommendedItem={recommendedItem}
+            addItem={addItem}
           />
-          <button
-            onClick={addItem}
-            disabled={newItemName.trim().length < 2}
-            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
-          >
-            <Plus size={24} />
-          </button>
+          <DishRecommendation groceryItems={groceryItems} setGroceryItems={setGroceryItems} />
         </div>
         <ul>
           {sortedItems.map((item) => (

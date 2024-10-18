@@ -13,6 +13,55 @@ interface DishRecommendationProps {
   setGroceryItems: React.Dispatch<React.SetStateAction<GroceryItem[]>>;
 }
 
+const DishContainer: React.FC<{
+  recommendedDish: string;
+  dishImage: string;
+  isLoading: boolean;
+  addDishIngredients: () => void;
+}> = ({ recommendedDish, dishImage, isLoading, addDishIngredients }) => {
+  const [newDish, setNewDish] = useState('');
+
+  const handleAddDish = () => {
+    // Logic to add the new dish
+    console.log('Adding dish:', newDish);
+    setNewDish('');
+  };
+
+  return (
+    <div className="bg-gray-100 p-4 rounded-lg mb-4">
+      <h3 className="text-lg font-semibold mb-2">Recommended Dish</h3>
+      <div className="flex flex-col items-center mb-4">
+        {dishImage && (
+          <img src={dishImage} alt={recommendedDish} className="w-32 h-32 object-cover rounded-full mb-2" />
+        )}
+        <p className="text-center">{recommendedDish}</p>
+        <button
+          onClick={addDishIngredients}
+          disabled={!recommendedDish || isLoading}
+          className="bg-purple-500 text-white p-2 rounded mt-2 disabled:opacity-50"
+        >
+          {isLoading ? 'Loading...' : `Add ingredients for ${recommendedDish || 'recommended dish'}`}
+        </button>
+      </div>
+      <div className="flex">
+        <input
+          type="text"
+          value={newDish}
+          onChange={(e) => setNewDish(e.target.value)}
+          placeholder="Add new dish"
+          className="flex-grow p-2 border rounded-l"
+        />
+        <button
+          onClick={handleAddDish}
+          className="bg-blue-500 text-white px-4 py-2 rounded-r"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, setGroceryItems }) => {
   const [recommendedDish, setRecommendedDish] = useState('');
   const [dishImage, setDishImage] = useState('');
@@ -117,17 +166,12 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, s
     <div className="flex flex-col items-center">
       {isLoading && <p>Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
-      {dishImage && (
-        <img src={dishImage} alt={recommendedDish} className="w-32 h-32 object-cover rounded-full mb-4" />
-      )}
-      <button
-        onClick={addDishIngredients}
-        disabled={!recommendedDish || isLoading}
-        className="bg-purple-500 text-white p-2 rounded mb-4 disabled:opacity-50 flex items-center justify-center"
-      >
-        {dishImage && <img src={dishImage} alt={recommendedDish} className="w-8 h-8 object-cover rounded-full mr-2" />}
-        {isLoading ? 'Loading...' : `Add ingredients for ${recommendedDish || 'recommended dish'}`}
-      </button>
+      <DishContainer
+        recommendedDish={recommendedDish}
+        dishImage={dishImage}
+        isLoading={isLoading}
+        addDishIngredients={addDishIngredients}
+      />
     </div>
   );
 };
