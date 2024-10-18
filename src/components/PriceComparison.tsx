@@ -88,22 +88,22 @@ const PriceComparison: React.FC = () => {
             </thead>
             <tbody>
               {groceryItems.map(item => (
-                <tr key={item.id} className="border-b">
+                <tr key={`item-${item.id}`} className="border-b">
                   <td className="p-2">{item.name} (x{item.quantity})</td>
                   {supermarkets.map(supermarket => {
                     const price = prices.find(p => p.supermarketId === supermarket.id && p.itemId === item.id);
                     return (
-                      <td key={supermarket.id} className="p-2 text-center">
+                      <td key={`price-${item.id}-${supermarket.id}`} className="p-2 text-center">
                         {price ? `$${(price.price * item.quantity).toFixed(2)}` : '-'}
                       </td>
                     );
                   })}
                 </tr>
               ))}
-              <tr className="font-bold bg-gray-100">
+              <tr key="total-row" className="font-bold bg-gray-100">
                 <td className="p-2">Total</td>
                 {supermarkets.map(supermarket => (
-                  <td key={supermarket.id} className="p-2 text-center">
+                  <td key={`total-${supermarket.id}`} className="p-2 text-center">
                     ${calculateTotal(supermarket.id).toFixed(2)}
                   </td>
                 ))}
