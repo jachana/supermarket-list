@@ -14,12 +14,23 @@ interface DishRecommendationProps {
 
 const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, reloadGroceryList }) => {
   const [recommendedDish, setRecommendedDish] = useState('');
+  const [dishImage, setDishImage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchRecommendedDish();
   }, [groceryItems]);
 
+  useEffect(() => {
+    if (recommendedDish) {
+      fetchDishImage();
+    }
+  }, [recommendedDish]);
+
   const fetchRecommendedDish = async () => {
+    setIsLoading(true);
+    setError('');
     try {
       const response = await axios.post('https://api.openai.com/v1/chat/completions', {
         model: 'gpt-4o-mini',
@@ -36,11 +47,39 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, r
       setRecommendedDish(response.data.choices[0].message.content.trim());
     } catch (error) {
       console.error('Error fetching recommended dish:', error);
+      setError('Failed to fetch recommended dish. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchDishImage = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await axios.post('https://api.openai.com/v1/images/generations', {
+        prompt: `A delicious ${recommendedDish}, food photography`,
+        n: 1,
+        size: "256x256"
+      }, {
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      setDishImage(response.data.data[0].url);
+    } catch (error) {
+      console.error('Error fetching dish image:', error);
+      setError('Failed to fetch dish image. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const addDishIngredients = async () => {
     if (recommendedDish) {
+      setIsLoading(true);
+      setError('');
       try {
         const response = await axios.post('https://api.openai.com/v1/chat/completions', {
           model: 'gpt-4o-mini',
@@ -65,18 +104,27 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, r
         fetchRecommendedDish(); // Fetch a new dish recommendation
       } catch (error) {
         console.error('Error adding dish ingredients:', error);
+        setError('Failed to add dish ingredients. Please try again.');
+      } finally {
+        setIsLoading(false);
       }
     }
   };
 
   return (
-    <div>
+    <div className="flex flex-col items-center">
+      {isLoading && <p>Loading...</p>}
+      {error && <p className="text-red-500">{error}</p>}
+      {dishImage && (
+        <img src={dishImage} alt={recommendedDish} className="w-32 h-32 object-cover rounded-full mb-4" />
+      )}
       <button
         onClick={addDishIngredients}
-        disabled={!recommendedDish}
-        className="bg-purple-500 text-white p-2 rounded mb-4 disabled:opacity-50 flex-1"
+        disabled={!recommendedDish || isLoading}
+        className="bg-purple-500 text-white p-2 rounded mb-4 disabled:opacity-50 flex items-center justify-center"
       >
-        Add ingredients for {recommendedDish || 'recommended dish'}
+        {dishImage && <img src={dishImage} alt={recommendedDish} className="w-8 h-8 object-cover rounded-full mr-2" />}
+        {isLoading ? 'Loading...' : `Add ingredients for ${recommendedDish || 'recommended dish'}`}
       </button>
     </div>
   );
