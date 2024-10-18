@@ -4,6 +4,7 @@
 interface GroceryItem {
   _id: string;
   name: string;
+  completed: boolean;
 }
 
 const STORAGE_KEY = 'groceryItems';
@@ -18,16 +19,25 @@ function getFromLocalStorage(): GroceryItem[] {
 }
 
 export async function getGroceryItems(): Promise<GroceryItem[]> {
-  return Promise.resolve(getFromLocalStorage());
+  const items = getFromLocalStorage();
+  // Ensure all items have the 'completed' property
+  return Promise.resolve(items.map(item => ({
+    ...item,
+    completed: item.completed ?? false
+  })));
 }
 
 function generateUniqueId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
-export async function addGroceryItem(item: { name: string }): Promise<GroceryItem[]> {
+export async function addGroceryItem(item: { name: string; completed?: boolean }): Promise<GroceryItem[]> {
   const items = getFromLocalStorage();
-  const newItem = { ...item, _id: generateUniqueId() };
+  const newItem: GroceryItem = { 
+    ...item, 
+    _id: generateUniqueId(),
+    completed: item.completed ?? false
+  };
   const updatedItems = [...items, newItem];
   saveToLocalStorage(updatedItems);
   return Promise.resolve(updatedItems);
@@ -39,4 +49,13 @@ export async function removeGroceryItem(id: string): Promise<boolean> {
   const updatedItems = items.filter(item => item._id !== id);
   saveToLocalStorage(updatedItems);
   return Promise.resolve(updatedItems.length < initialLength);
+}
+
+export async function updateGroceryItem(id: string, updates: Partial<GroceryItem>): Promise<GroceryItem[]> {
+  const items = getFromLocalStorage();
+  const updatedItems = items.map(item => 
+    item._id === id ? { ...item, ...updates } : item
+  );
+  saveToLocalStorage(updatedItems);
+  return Promise.resolve(updatedItems);
 }

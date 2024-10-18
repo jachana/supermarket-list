@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import axios from 'axios';
-import { addGroceryItem, removeGroceryItem, getGroceryItems } from '../db/mongo';
+import { addGroceryItem, removeGroceryItem, getGroceryItems, updateGroceryItem } from '../db/mongo';
 import DishRecommendation from './DishRecommendation';
 
 interface GroceryItem {
   _id: string;
   name: string;
+  completed: boolean;
 }
 
 interface GroceryListProps {
@@ -26,9 +27,9 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
     if (newItemName.trim().length > 2) {
       const newItem = {
         name: newItemName.trim(),
+        completed: false,
       };
-      await addGroceryItem(newItem);
-      const updatedItems = await getGroceryItems();
+      const updatedItems = await addGroceryItem(newItem);
       setGroceryItems(updatedItems);
       setNewItemName('');
     }
@@ -64,9 +65,9 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
     if (recommendedItem) {
       const newItem = {
         name: recommendedItem,
+        completed: false,
       };
-      await addGroceryItem(newItem);
-      const updatedItems = await getGroceryItems();
+      const updatedItems = await addGroceryItem(newItem);
       setGroceryItems(updatedItems);
     }
   };
@@ -76,6 +77,20 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
     const updatedItems = await getGroceryItems();
     setGroceryItems(updatedItems);
   };
+
+  const toggleItemCompletion = async (id: string) => {
+    const item = groceryItems.find(item => item._id === id);
+    if (item) {
+      const updatedItems = await updateGroceryItem(id, { completed: !item.completed });
+      setGroceryItems(updatedItems);
+    }
+  };
+
+  // Sort items: incomplete items first, then completed items
+  const sortedItems = [...groceryItems].sort((a, b) => {
+    if (a.completed === b.completed) return 0;
+    return a.completed ? 1 : -1;
+  });
 
   return (
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
@@ -109,15 +124,25 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
           </button>
         </div>
         <ul>
-          {groceryItems.map((item) => (
-            <li key={item._id} className="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded">
-              <span>{item.name}</span>
-              <button
-                onClick={() => removeItem(item._id)}
-                className="text-red-500 hover:text-red-700"
-              >
-                <Trash2 size={18} />
-              </button>
+          {sortedItems.map((item) => (
+            <li key={item._id} className="mb-2">
+              <div className="flex justify-between items-center p-2 bg-gray-100 rounded hover:bg-gray-200 cursor-pointer">
+                <span 
+                  className={`flex-grow ${item.completed ? 'line-through text-gray-500' : ''}`}
+                  onClick={() => toggleItemCompletion(item._id)}
+                >
+                  {item.name}
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removeItem(item._id);
+                  }}
+                  className="text-red-500 hover:text-red-700 ml-2"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
             </li>
           ))}
         </ul>

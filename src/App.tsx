@@ -10,6 +10,7 @@ import { getGroceryItems } from './db/mongo';
 interface GroceryItem {
   _id: string;
   name: string;
+  completed: boolean;
 }
 
 function App() {
@@ -22,7 +23,12 @@ function App() {
   const loadGroceryList = async () => {
     try {
       const items = await getGroceryItems();
-      setGroceryItems(items);
+      // Ensure that each item has the 'completed' property
+      const updatedItems = items.map(item => ({
+        ...item,
+        completed: item.completed ?? false // Use false as default if 'completed' is not present
+      }));
+      setGroceryItems(updatedItems);
     } catch (error) {
       console.error('Error loading grocery list:', error);
     }

@@ -5,6 +5,7 @@ import { addGroceryItem, getGroceryItems } from '../db/mongo';
 interface GroceryItem {
   _id: string;
   name: string;
+  completed: boolean;
 }
 
 interface DishRecommendationProps {
@@ -36,7 +37,7 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, s
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: 'You are a helpful assistant that recommends dishes based on available ingredients. Respond with only the name of a single dish.' },
-          { role: 'user', content: `Based on the current grocery list: ${groceryItems.map(item => item.name).join(', ')}, suggest a dish that can be made with some of these ingredients. pay extra focus to the latest ones` }
+          { role: 'user', content: `Based on the current grocery list: ${groceryItems.map(item => item.name).join(', ')}, suggest a dish that can be made with some of these ingredients, pay extra atention to the ingredients that have not being bought yet` }
         ],
       }, {
         headers: {
@@ -85,7 +86,7 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, s
           model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: 'You are a helpful assistant that provides ingredients for dishes. Respond with a comma-separated list of ingredients.' },
-            { role: 'user', content: `Provide a list of ingredients for ${recommendedDish}. Only include ingredients that are not already in this list: ${groceryItems.map(item => item.name).join(', ')}.` }
+            { role: 'user', content: `Provide a list of ingredients for ${recommendedDish}. Only include ingredients that are not already in this list: ${groceryItems.map(item => item.name).join(', ')}. and only include ingredients that should be bought in the supermarket` }
           ],
         }, {
           headers: {
@@ -97,7 +98,7 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, s
         const ingredients = response.data.choices[0].message.content.split(',').map((item: string) => item.trim());
         
         for (const ingredient of ingredients) {
-          await addGroceryItem({ name: ingredient });
+          await addGroceryItem({ name: ingredient, completed: false });
         }
         
         const updatedItems = await getGroceryItems();
