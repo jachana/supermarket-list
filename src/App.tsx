@@ -5,9 +5,10 @@ import Footer from './components/Footer';
 import GroceryList from './components/GroceryList';
 import SupermarketList from './components/SupermarketList';
 import PriceComparison from './components/PriceComparison';
+import { getGroceryItems } from './db/mongo';
 
 interface GroceryItem {
-  id: number;
+  _id: string;
   name: string;
   quantity: number;
 }
@@ -19,26 +20,12 @@ function App() {
     loadGroceryList();
   }, []);
 
-  useEffect(() => {
-    saveGroceryList();
-  }, [groceryItems]);
-
-  const loadGroceryList = () => {
+  const loadGroceryList = async () => {
     try {
-      const savedItems = localStorage.getItem('groceryList');
-      if (savedItems) {
-        setGroceryItems(JSON.parse(savedItems));
-      }
+      const items = await getGroceryItems();
+      setGroceryItems(items);
     } catch (error) {
       console.error('Error loading grocery list:', error);
-    }
-  };
-
-  const saveGroceryList = () => {
-    try {
-      localStorage.setItem('groceryList', JSON.stringify(groceryItems));
-    } catch (error) {
-      console.error('Error saving grocery list:', error);
     }
   };
 

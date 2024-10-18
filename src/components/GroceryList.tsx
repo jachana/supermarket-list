@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import axios from 'axios';
+import { addGroceryItem, removeGroceryItem } from '../db/mongo';
 
 interface GroceryItem {
-  id: number;
+  _id: string;
   name: string;
   quantity: number;
 }
@@ -18,16 +19,18 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
   const [newItemQuantity, setNewItemQuantity] = useState(1);
   const [recommendedItem, setRecommendedItem] = useState('');
 
-  const addItem = () => {
+  const addItem = async () => {
     if (newItemName.trim().length > 2) {
-      const newItem: GroceryItem = {
-        id: Date.now(),
+      const newItem = {
         name: newItemName.trim(),
         quantity: newItemQuantity,
       };
-      setGroceryItems([...groceryItems, newItem]);
-      setNewItemName('');
-      setNewItemQuantity(1);
+      const result = await addGroceryItem(newItem);
+      if (result.insertedId) {
+        setGroceryItems([...groceryItems, { ...newItem, _id: result.insertedId }]);
+        setNewItemName('');
+        setNewItemQuantity(1);
+      }
     }
   };
 
@@ -57,19 +60,22 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
     }
   };
 
-  const addRecommendedItem = () => {
+  const addRecommendedItem = async () => {
     if (recommendedItem) {
-      const newItem: GroceryItem = {
-        id: Date.now(),
+      const newItem = {
         name: recommendedItem,
         quantity: 1,
       };
-      setGroceryItems([...groceryItems, newItem]);
+      const result = await addGroceryItem(newItem);
+      if (result.insertedId) {
+        setGroceryItems([...groceryItems, { ...newItem, _id: result.insertedId }]);
+      }
     }
   };
 
-  const removeItem = (id: number) => {
-    setGroceryItems(groceryItems.filter(item => item.id !== id));
+  const removeItem = async (id: string) => {
+    await removeGroceryItem(id);
+    setGroceryItems(groceryItems.filter(item => item._id !== id));
   };
 
   return (
@@ -116,10 +122,10 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
         </div>
         <ul>
           {groceryItems.map((item) => (
-            <li key={item.id} className="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded">
+            <li key={item._id} className="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded">
               <span>{item.name} (x{item.quantity})</span>
               <button
-                onClick={() => removeItem(item.id)}
+                onClick={() => removeItem(item._id)}
                 className="text-red-500 hover:text-red-700"
               >
                 <Trash2 size={18} />
