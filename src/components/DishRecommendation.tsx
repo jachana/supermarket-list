@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { addGroceryItem } from '../db/mongo';
+import { addGroceryItem, getGroceryItems } from '../db/mongo';
 
 interface GroceryItem {
   _id: string;
@@ -9,10 +9,10 @@ interface GroceryItem {
 
 interface DishRecommendationProps {
   groceryItems: GroceryItem[];
-  reloadGroceryList: () => void;
+  setGroceryItems: React.Dispatch<React.SetStateAction<GroceryItem[]>>;
 }
 
-const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, reloadGroceryList }) => {
+const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, setGroceryItems }) => {
   const [recommendedDish, setRecommendedDish] = useState('');
   const [dishImage, setDishImage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -100,7 +100,8 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, r
           await addGroceryItem({ name: ingredient });
         }
         
-        reloadGroceryList();
+        const updatedItems = await getGroceryItems();
+        setGroceryItems(updatedItems);
         fetchRecommendedDish(); // Fetch a new dish recommendation
       } catch (error) {
         console.error('Error adding dish ingredients:', error);

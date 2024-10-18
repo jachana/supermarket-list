@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import axios from 'axios';
-import { addGroceryItem, removeGroceryItem } from '../db/mongo';
+import { addGroceryItem, removeGroceryItem, getGroceryItems } from '../db/mongo';
 import DishRecommendation from './DishRecommendation';
 
 interface GroceryItem {
@@ -12,10 +12,9 @@ interface GroceryItem {
 interface GroceryListProps {
   groceryItems: GroceryItem[];
   setGroceryItems: React.Dispatch<React.SetStateAction<GroceryItem[]>>;
-  reloadGroceryList: () => void;
 }
 
-const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems, reloadGroceryList }) => {
+const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems }) => {
   const [newItemName, setNewItemName] = useState('');
   const [recommendedItem, setRecommendedItem] = useState('');
 
@@ -28,11 +27,10 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
       const newItem = {
         name: newItemName.trim(),
       };
-      const result = await addGroceryItem(newItem);
-      if (result) {
-        setNewItemName('');
-        reloadGroceryList(); // Reload the list after adding a new item
-      }
+      await addGroceryItem(newItem);
+      const updatedItems = await getGroceryItems();
+      setGroceryItems(updatedItems);
+      setNewItemName('');
     }
   };
 
@@ -67,16 +65,16 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
       const newItem = {
         name: recommendedItem,
       };
-      const result = await addGroceryItem(newItem);
-      if (result) {
-        reloadGroceryList(); // Reload the list after adding the recommended item
-      }
+      await addGroceryItem(newItem);
+      const updatedItems = await getGroceryItems();
+      setGroceryItems(updatedItems);
     }
   };
 
   const removeItem = async (id: string) => {
     await removeGroceryItem(id);
-    reloadGroceryList(); // Reload the list after removing an item
+    const updatedItems = await getGroceryItems();
+    setGroceryItems(updatedItems);
   };
 
   return (
@@ -91,7 +89,7 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
           >
             Add {recommendedItem || 'recommended item'}
           </button>
-          <DishRecommendation groceryItems={groceryItems} reloadGroceryList={reloadGroceryList} />
+          <DishRecommendation groceryItems={groceryItems} setGroceryItems={setGroceryItems} />
         </div>
         <div className="flex mb-4">
           <input

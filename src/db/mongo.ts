@@ -21,9 +21,13 @@ export async function getGroceryItems(): Promise<GroceryItem[]> {
   return Promise.resolve(getFromLocalStorage());
 }
 
+function generateUniqueId(): string {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
 export async function addGroceryItem(item: { name: string }): Promise<GroceryItem[]> {
   const items = getFromLocalStorage();
-  const newItem = { ...item, _id: Date.now().toString() };
+  const newItem = { ...item, _id: generateUniqueId() };
   const updatedItems = [...items, newItem];
   saveToLocalStorage(updatedItems);
   return Promise.resolve(updatedItems);
