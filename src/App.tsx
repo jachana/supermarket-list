@@ -35,7 +35,7 @@ function App() {
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8">
           <Routes>
-            <Route path="/" element={<GroceryList groceryItems={groceryItems} setGroceryItems={setGroceryItems} />} />
+            <Route path="/" element={<GroceryList groceryItems={groceryItems} setGroceryItems={setGroceryItems} reloadGroceryList={loadGroceryList} />} />
             <Route path="/supermarkets" element={<SupermarketList />} />
             <Route path="/compare" element={<PriceComparison />} />
           </Routes>

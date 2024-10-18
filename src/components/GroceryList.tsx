@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { addGroceryItem, removeGroceryItem } from '../db/mongo';
@@ -12,12 +12,17 @@ interface GroceryItem {
 interface GroceryListProps {
   groceryItems: GroceryItem[];
   setGroceryItems: React.Dispatch<React.SetStateAction<GroceryItem[]>>;
+  reloadGroceryList: () => void;
 }
 
-const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems }) => {
+const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems, reloadGroceryList }) => {
   const [newItemName, setNewItemName] = useState('');
   const [newItemQuantity, setNewItemQuantity] = useState(1);
   const [recommendedItem, setRecommendedItem] = useState('');
+
+  useEffect(() => {
+    fetchRecommendedItem();
+  }, [groceryItems]);
 
   const addItem = async () => {
     if (newItemName.trim().length > 2) {
@@ -26,10 +31,10 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
         quantity: newItemQuantity,
       };
       const result = await addGroceryItem(newItem);
-      if (result.insertedId) {
-        setGroceryItems([...groceryItems, { ...newItem, _id: result.insertedId }]);
+      if (result) {
         setNewItemName('');
         setNewItemQuantity(1);
+        reloadGroceryList(); // Reload the list after adding a new item
       }
     }
   };
@@ -45,12 +50,12 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
       const response = await axios.post('https://api.openai.com/v1/chat/completions', {
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: 'You are a helpful assistant.' },
+          { role: 'system', content: 'You are a helpful assistant that helps choose grocery items to add to a list. Respond with only the name of a single grocery item.' },
           { role: 'user', content: `Based on the current grocery list: ${groceryItems.map(item => item.name).join(', ')}, suggest a recommended item.` }
         ],
       }, {
         headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
       });
@@ -67,15 +72,15 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
         quantity: 1,
       };
       const result = await addGroceryItem(newItem);
-      if (result.insertedId) {
-        setGroceryItems([...groceryItems, { ...newItem, _id: result.insertedId }]);
+      if (result) {
+        reloadGroceryList(); // Reload the list after adding the recommended item
       }
     }
   };
 
   const removeItem = async (id: string) => {
     await removeGroceryItem(id);
-    setGroceryItems(groceryItems.filter(item => item._id !== id));
+    reloadGroceryList(); // Reload the list after removing an item
   };
 
   return (
@@ -83,18 +88,11 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
       <div className="p-8">
         <h2 className="text-2xl font-bold mb-4">Grocery List</h2>
         <button
-          onClick={fetchRecommendedItem}
-          disabled={groceryItems.length < 2}
-          className="bg-green-500 text-white p-2 rounded mb-4 disabled:opacity-50"
-        >
-          Fetch Recommended Item
-        </button>
-        <button
           onClick={addRecommendedItem}
           disabled={!recommendedItem}
           className="bg-green-500 text-white p-2 rounded mb-4 disabled:opacity-50"
         >
-          Add Recommended Item
+          Add {recommendedItem || 'recommended item'}
         </button>
         <div className="flex mb-4">
           <input
