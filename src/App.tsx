@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -6,14 +6,49 @@ import GroceryList from './components/GroceryList';
 import SupermarketList from './components/SupermarketList';
 import PriceComparison from './components/PriceComparison';
 
+interface GroceryItem {
+  id: number;
+  name: string;
+  quantity: number;
+}
+
 function App() {
+  const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
+
+  useEffect(() => {
+    loadGroceryList();
+  }, []);
+
+  useEffect(() => {
+    saveGroceryList();
+  }, [groceryItems]);
+
+  const loadGroceryList = () => {
+    try {
+      const savedItems = localStorage.getItem('groceryList');
+      if (savedItems) {
+        setGroceryItems(JSON.parse(savedItems));
+      }
+    } catch (error) {
+      console.error('Error loading grocery list:', error);
+    }
+  };
+
+  const saveGroceryList = () => {
+    try {
+      localStorage.setItem('groceryList', JSON.stringify(groceryItems));
+    } catch (error) {
+      console.error('Error saving grocery list:', error);
+    }
+  };
+
   return (
     <Router>
       <div className="flex flex-col min-h-screen bg-gray-100">
         <Header />
         <main className="flex-grow container mx-auto px-4 py-8">
           <Routes>
-            <Route path="/" element={<GroceryList />} />
+            <Route path="/" element={<GroceryList groceryItems={groceryItems} setGroceryItems={setGroceryItems} />} />
             <Route path="/supermarkets" element={<SupermarketList />} />
             <Route path="/compare" element={<PriceComparison />} />
           </Routes>

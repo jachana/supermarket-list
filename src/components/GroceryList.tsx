@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import axios from 'axios';
 
@@ -8,46 +8,15 @@ interface GroceryItem {
   quantity: number;
 }
 
-const GroceryList: React.FC = () => {
-  const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
+interface GroceryListProps {
+  groceryItems: GroceryItem[];
+  setGroceryItems: React.Dispatch<React.SetStateAction<GroceryItem[]>>;
+}
+
+const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems }) => {
   const [newItemName, setNewItemName] = useState('');
   const [newItemQuantity, setNewItemQuantity] = useState(1);
   const [recommendedItem, setRecommendedItem] = useState('');
-
-  useEffect(() => {
-    loadGroceryList();
-  }, []);
-
-  useEffect(() => {
-    saveGroceryList();
-  }, [groceryItems]);
-
-  const loadGroceryList = () => {
-    try {
-      const savedItems = localStorage.getItem('groceryList');
-      if (savedItems) {
-        setGroceryItems(JSON.parse(savedItems));
-      }
-    } catch (error) {
-      console.error('Error loading grocery list:', error);
-    }
-  };
-
-  const saveGroceryList = () => {
-    try {
-      localStorage.setItem('groceryList', JSON.stringify(groceryItems));
-      // Attempt to save to server
-      fetch('http://localhost:3001/api/saveGroceryList', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(groceryItems),
-      }).catch(error => console.error('Error saving to server:', error));
-    } catch (error) {
-      console.error('Error saving grocery list:', error);
-    }
-  };
 
   const addItem = () => {
     if (newItemName.trim().length > 2) {
