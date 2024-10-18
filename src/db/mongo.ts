@@ -1,27 +1,27 @@
-import { MongoClient, Db } from 'mongodb';
+// We'll use a placeholder for the MongoDB operations
+// In a real-world scenario, you'd use an API to interact with the database
 
-let db: Db | null = null;
-
-export async function connectToDatabase() {
-  if (db) return db;
-
-  const client = new MongoClient(process.env.MONGODB_URI || 'mongodb://localhost:27017');
-  await client.connect();
-  db = client.db('groceryListDB');
-  return db;
+interface GroceryItem {
+  _id?: string;
+  name: string;
+  quantity: number;
 }
 
-export async function getGroceryItems() {
-  const database = await connectToDatabase();
-  return database.collection('groceryItems').find({}).toArray();
+let groceryItems: GroceryItem[] = [];
+
+export async function getGroceryItems(): Promise<GroceryItem[]> {
+  // In a real app, this would fetch from an API
+  return Promise.resolve(groceryItems);
 }
 
-export async function addGroceryItem(item: { name: string; quantity: number }) {
-  const database = await connectToDatabase();
-  return database.collection('groceryItems').insertOne(item);
+export async function addGroceryItem(item: { name: string; quantity: number }): Promise<GroceryItem> {
+  const newItem = { ...item, _id: Date.now().toString() };
+  groceryItems.push(newItem);
+  return Promise.resolve(newItem);
 }
 
-export async function removeGroceryItem(id: string) {
-  const database = await connectToDatabase();
-  return database.collection('groceryItems').deleteOne({ _id: id });
+export async function removeGroceryItem(id: string): Promise<boolean> {
+  const initialLength = groceryItems.length;
+  groceryItems = groceryItems.filter(item => item._id !== id);
+  return Promise.resolve(groceryItems.length < initialLength);
 }
