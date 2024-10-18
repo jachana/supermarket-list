@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import axios from 'axios';
 import { addGroceryItem, removeGroceryItem } from '../db/mongo';
+import DishRecommendation from './DishRecommendation';
 
 interface GroceryItem {
   _id: string;
@@ -82,13 +83,16 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
     <div className="max-w-md mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-2xl">
       <div className="p-8">
         <h2 className="text-2xl font-bold mb-4">Grocery List</h2>
-        <button
-          onClick={addRecommendedItem}
-          disabled={!recommendedItem}
-          className="bg-green-500 text-white p-2 rounded mb-4 disabled:opacity-50"
-        >
-          Add {recommendedItem || 'recommended item'}
-        </button>
+        <div className="flex space-x-2 mb-4">
+          <button
+            onClick={addRecommendedItem}
+            disabled={!recommendedItem}
+            className="bg-green-500 text-white p-2 rounded disabled:opacity-50 flex-1"
+          >
+            Add {recommendedItem || 'recommended item'}
+          </button>
+          <DishRecommendation groceryItems={groceryItems} reloadGroceryList={reloadGroceryList} />
+        </div>
         <div className="flex mb-4">
           <input
             type="text"
