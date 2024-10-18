@@ -6,7 +6,6 @@ import { addGroceryItem, removeGroceryItem } from '../db/mongo';
 interface GroceryItem {
   _id: string;
   name: string;
-  quantity: number;
 }
 
 interface GroceryListProps {
@@ -17,7 +16,6 @@ interface GroceryListProps {
 
 const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems, reloadGroceryList }) => {
   const [newItemName, setNewItemName] = useState('');
-  const [newItemQuantity, setNewItemQuantity] = useState(1);
   const [recommendedItem, setRecommendedItem] = useState('');
 
   useEffect(() => {
@@ -28,12 +26,10 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
     if (newItemName.trim().length > 2) {
       const newItem = {
         name: newItemName.trim(),
-        quantity: newItemQuantity,
       };
       const result = await addGroceryItem(newItem);
       if (result) {
         setNewItemName('');
-        setNewItemQuantity(1);
         reloadGroceryList(); // Reload the list after adding a new item
       }
     }
@@ -69,7 +65,6 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
     if (recommendedItem) {
       const newItem = {
         name: recommendedItem,
-        quantity: 1,
       };
       const result = await addGroceryItem(newItem);
       if (result) {
@@ -103,13 +98,6 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
             placeholder="Enter item name"
             className="flex-grow mr-2 p-2 border rounded"
           />
-          <input
-            type="number"
-            value={newItemQuantity}
-            onChange={(e) => setNewItemQuantity(parseInt(e.target.value))}
-            min="1"
-            className="w-20 mr-2 p-2 border rounded"
-          />
           <button
             onClick={addItem}
             disabled={newItemName.trim().length < 2}
@@ -121,7 +109,7 @@ const GroceryList: React.FC<GroceryListProps> = ({ groceryItems, setGroceryItems
         <ul>
           {groceryItems.map((item) => (
             <li key={item._id} className="flex justify-between items-center mb-2 p-2 bg-gray-100 rounded">
-              <span>{item.name} (x{item.quantity})</span>
+              <span>{item.name}</span>
               <button
                 onClick={() => removeItem(item._id)}
                 className="text-red-500 hover:text-red-700"

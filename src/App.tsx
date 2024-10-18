@@ -10,7 +10,6 @@ import { getGroceryItems } from './db/mongo';
 interface GroceryItem {
   _id: string;
   name: string;
-  quantity: number;
 }
 
 function App() {

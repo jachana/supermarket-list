@@ -4,7 +4,6 @@
 interface GroceryItem {
   _id: string;
   name: string;
-  quantity: number;
 }
 
 const STORAGE_KEY = 'groceryItems';
@@ -22,7 +21,7 @@ export async function getGroceryItems(): Promise<GroceryItem[]> {
   return Promise.resolve(getFromLocalStorage());
 }
 
-export async function addGroceryItem(item: { name: string; quantity: number }): Promise<GroceryItem[]> {
+export async function addGroceryItem(item: { name: string }): Promise<GroceryItem[]> {
   const items = getFromLocalStorage();
   const newItem = { ...item, _id: Date.now().toString() };
   const updatedItems = [...items, newItem];
