@@ -22,12 +22,12 @@ export async function getGroceryItems(): Promise<GroceryItem[]> {
   return Promise.resolve(getFromLocalStorage());
 }
 
-export async function addGroceryItem(item: { name: string; quantity: number }): Promise<GroceryItem> {
+export async function addGroceryItem(item: { name: string; quantity: number }): Promise<GroceryItem[]> {
   const items = getFromLocalStorage();
   const newItem = { ...item, _id: Date.now().toString() };
-  items.push(newItem);
-  saveToLocalStorage(items);
-  return Promise.resolve(newItem);
+  const updatedItems = [...items, newItem];
+  saveToLocalStorage(updatedItems);
+  return Promise.resolve(updatedItems);
 }
 
 export async function removeGroceryItem(id: string): Promise<boolean> {
