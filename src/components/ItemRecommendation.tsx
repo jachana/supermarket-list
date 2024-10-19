@@ -27,16 +27,18 @@ const ItemRecommendation: React.FC<ItemRecommendationProps> = ({ groceryItems, s
     setIsLoading(true);
     setError('');
     try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4o-mini',
+      const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+        model: 'mistralai/ministral-3b',
         messages: [
           { role: 'system', content: 'You are a helpful assistant that helps choose grocery items to add to a list. Respond with only the name of a single grocery item.' },
           { role: 'user', content: `Based on the current grocery list: ${groceryItems.map(item => item.name).join(', ')}, suggest a recommended item.` }
         ],
       }, {
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://yourwebsite.com', // Replace with your actual website
+          'X-Title': 'Grocery List App', // Replace with your app's name
         },
       });
       setRecommendedItem(response.data.choices[0].message.content.trim());

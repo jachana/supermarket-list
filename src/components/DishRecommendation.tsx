@@ -34,16 +34,18 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, s
     setIsLoading(true);
     setError('');
     try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4o-mini',
+      const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+        model: 'mistralai/ministral-3b',
         messages: [
           { role: 'system', content: 'You are a helpful assistant that recommends dishes based on available ingredients. Respond with only the name of a single dish.' },
           { role: 'user', content: `Based on the current grocery list: ${groceryItems.map(item => item.name).join(', ')}, suggest a dish that can be made with some of these ingredients, pay extra attention to the ingredients that have not been bought yet` }
         ],
       }, {
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://yourwebsite.com', // Replace with your actual website
+          'X-Title': 'Grocery List App', // Replace with your app's name
         },
       });
       setRecommendedDish(response.data.choices[0].message.content.trim());
@@ -59,14 +61,17 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, s
     setIsLoading(true);
     setError('');
     try {
-      const response = await axios.post('https://api.openai.com/v1/images/generations', {
+      const response = await axios.post('https://openrouter.ai/api/v1/images/generations', {
+        model: 'openai/dall-e-2',
         prompt: `A delicious ${recommendedDish}, food photography`,
         n: 1,
         size: "256x256"
       }, {
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://yourwebsite.com', // Replace with your actual website
+          'X-Title': 'Grocery List App', // Replace with your app's name
         },
       });
       setDishImage(response.data.data[0].url);
@@ -82,16 +87,18 @@ const DishRecommendation: React.FC<DishRecommendationProps> = ({ groceryItems, s
     setIsLoading(true);
     setError('');
     try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
-        model: 'gpt-4o-mini',
+      const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+        model: 'mistralai/ministral-3b',
         messages: [
           { role: 'system', content: 'You are a helpful assistant that provides ingredients for dishes. Respond with a comma-separated list of ingredients.' },
           { role: 'user', content: `Provide a list of ingredients for ${dishName}. Only include ingredients that are not already in this list: ${groceryItems.map(item => item.name).join(', ')}. and only include ingredients that should be bought in the supermarket` }
         ],
       }, {
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://yourwebsite.com', // Replace with your actual website
+          'X-Title': 'Grocery List App', // Replace with your app's name
         },
       });
       

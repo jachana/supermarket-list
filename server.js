@@ -13,8 +13,8 @@ const port = 3001;
 app.use(cors());
 app.use(express.json());
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, 'build')));
+// Serve static files from the React app (now in 'dist' directory)
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // API endpoint to save the grocery list
 app.post('/api/saveGroceryList', async (req, res) => {
@@ -31,9 +31,9 @@ app.post('/api/saveGroceryList', async (req, res) => {
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-app.listen(port, () => {
-  console.log(`Server listening on port ${port}`);
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server listening on all network interfaces on port ${port}`);
 });
